@@ -48,9 +48,54 @@ public class ProductApiController {
                 result.setMessage("Can't find this product");
             }else {
                 result.setSuccess(true);
-                ModelMapper modelMapper =new ModelMapper();
-                ProductDetailModel productDetailModel = new ProductDetailModel();
+                ModelMapper modelMapper = new ModelMapper();
+                ProductDetailModel productDetailModel = modelMapper.map(existProduct, ProductDetailModel.class);
                 result.setData(productDetailModel);
+            }
+        }catch (Exception e){
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    @PostMapping("/update-product/{productId}")
+    public BaseApiResult updateProduct(@PathVariable int productId, @RequestBody ProductDataModel product){
+        BaseApiResult result = new BaseApiResult();
+        try {
+            if (!"".equals(product.getName()) && !"".equals(product.getShortDesc()) && !"".equals(product.getImage())){
+                Product existProduct = productService.findOne(productId);
+                if (existProduct ==null){
+                    result.setSuccess(false);
+                    result.setMessage("Invalid model");
+
+                }else {
+                    existProduct.setImage(product.getImage());
+                    existProduct.setName(product.getName());
+                    existProduct.setCreatedDate(product.getCreatedDate());
+                    existProduct.setShortDesc(product.getShortDesc());
+                    productService.updateProduct(existProduct);
+                    result.setSuccess(true);
+                    result.setMessage("Update product successfully");
+                }
+            }else {
+                result.setSuccess(false);
+                result.setMessage("Invalid model");
+            }
+        } catch (Exception e){
+            result.setSuccess(false);
+            result.setMessage(e.getMessage());
+        }
+        return result;
+    }
+
+    @PostMapping("/delete-product")
+    public BaseApiResult deleteProduct(@RequestBody ProductDeleteDataModel product){
+        BaseApiResult result = new DataApiResult();
+        try{
+            if (productService.deleteProduct(product.getProductId())){
+                result.setSuccess(true);
+                result.setMessage("Delete product successfully");
             }
         }catch (Exception e){
             result.setSuccess(false);
